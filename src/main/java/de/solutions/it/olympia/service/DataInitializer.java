@@ -17,44 +17,38 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        // Nur einmal initial befüllen
         if (sportRepository.count() > 0) {
             return;
         }
 
         // --- Sportarten ---
-        Sport biathlon = createSport("Biathlon");
-        Sport bobsport = createSport("Bobsport");
-        Sport curling = createSport("Curling");
-        Sport eishockey = createSport("Eishockey");
+        Sport biathlon     = createSport("Biathlon");
+        Sport bobsport     = createSport("Bobsport");
+        Sport curling      = createSport("Curling");
+        Sport eishockey    = createSport("Eishockey");
         Sport eiskunstlauf = createSport("Eiskunstlauf");
-        Sport skilanglauf = createSport("Skilanglauf");
-        Sport skispringen = createSport("Skispringen");
+        Sport skilanglauf  = createSport("Skilanglauf");
+        Sport skispringen  = createSport("Skispringen");
 
-        // --- User (Admin, später fürs Login interessant) ---
-        User admin = new User();
-        admin.setName("Admin");
-        admin.setUsername("admin");
-        admin.setPassword("admin");   // später verschlüsseln, jetzt egal
-        admin.setAdmin(true);
-        admin.setActive(true);
-        admin = userRepository.save(admin);
+        // --- Benutzer ---
+        User admin    = createUser("Admin",        "admin", true);
+        User referee1 = createUser("Referee One",  "ref1",  false);
+        User referee2 = createUser("Referee Two",  "ref2",  false);
 
-        // --- Beispiel-Athleten ---
-        Athlete athlete1 = createAthlete("Max Mustermann", "GER", biathlon);
-        Athlete athlete2 = createAthlete("John Doe", "USA", biathlon);
-        Athlete athlete3 = createAthlete("Anna Svensson", "SWE", skispringen);
+        // --- Athleten ---
+        Athlete a1 = createAthlete("Max Mustermann", "GER", biathlon);
+        Athlete a2 = createAthlete("John Doe",       "USA", biathlon);
+        Athlete a3 = createAthlete("Anna Svensson",  "SWE", skispringen);
 
-        // --- Beispiel-Ergebnis (APPROVED) ---
-        Result result1 = new Result();
-        result1.setAthlete(athlete1);
-        result1.setSport(biathlon);
-        result1.setCreatedBy(admin);
-        result1.setApprovedBy(admin);                 // damit es direkt APPROVED ist
-        result1.setValue("00:25:34.5");
-        result1.setStatus(ResultStatus.APPROVED);
-        result1.setActive(true);
-        resultRepository.save(result1);
+        Result r1 = new Result();
+        r1.setAthlete(a1);
+        r1.setSport(biathlon);
+        r1.setCreatedBy(admin);
+        r1.setApprovedBy(admin);
+        r1.setValue("00:25:34.5");
+        r1.setStatus(ResultStatus.APPROVED);
+        r1.setActive(true);
+        resultRepository.save(r1);
     }
 
     private Sport createSport(String name) {
@@ -71,5 +65,15 @@ public class DataInitializer implements CommandLineRunner {
         a.setSport(sport);
         a.setActive(true);
         return athleteRepository.save(a);
+    }
+
+    private User createUser(String name, String username, boolean admin) {
+        User u = new User();
+        u.setName(name);
+        u.setUsername(username);
+        u.setPassword("test123"); // später verschlüsseln
+        u.setAdmin(admin);
+        u.setActive(true);
+        return userRepository.save(u);
     }
 }
