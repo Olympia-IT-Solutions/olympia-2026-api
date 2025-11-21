@@ -38,6 +38,7 @@ public class Result {
     @Column(nullable = false)
     private String value;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ResultStatus status = ResultStatus.PENDING;
@@ -45,6 +46,7 @@ public class Result {
     @Column(nullable = false, updatable = false)
     private Instant timestamp;
 
+    @Builder.Default
     @Column(nullable = false)
     private boolean active = true;
 

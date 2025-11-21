@@ -27,6 +27,7 @@ public class Athlete {
     @Column(nullable = false)
     private String country;   // z.B. "GER", "USA"
 
+    @Builder.Default
     @Column(nullable = false)
     private boolean active = true;
 }

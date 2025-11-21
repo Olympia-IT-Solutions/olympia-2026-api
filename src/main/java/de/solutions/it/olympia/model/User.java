@@ -31,6 +31,7 @@ public class User {
     @Column(nullable = false)
     private boolean admin;
 
+    @Builder.Default
     @Column(nullable = false)
     private boolean active = true;
 }

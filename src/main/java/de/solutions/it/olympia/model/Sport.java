@@ -20,6 +20,7 @@ public class Sport {
     @Column(nullable = false, unique = true)
     private String name;
 
+    @Builder.Default
     @Column(nullable = false)
     private boolean active = true;
 }
