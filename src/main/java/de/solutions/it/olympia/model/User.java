@@ -27,9 +27,9 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    // isAdmin im Pflichtenheft
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private boolean admin;
+    private UserRole role;
 
     @Builder.Default
     @Column(nullable = false)

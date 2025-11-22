@@ -4,6 +4,7 @@ import de.solutions.it.olympia.model.*;
 import de.solutions.it.olympia.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,6 +15,7 @@ public class DataInitializer implements CommandLineRunner {
     private final AthleteRepository athleteRepository;
     private final UserRepository userRepository;
     private final ResultRepository resultRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) {
@@ -31,15 +33,16 @@ public class DataInitializer implements CommandLineRunner {
         Sport skispringen  = createSport("Skispringen");
 
         // --- Benutzer ---
-        User admin    = createUser("Admin",        "admin", true);
-        User referee1 = createUser("Referee One",  "ref1",  false);
-        User referee2 = createUser("Referee Two",  "ref2",  false);
+        User admin    = createUser("Admin",       "admin", UserRole.ADMIN);
+        User referee1 = createUser("Referee One", "ref1",  UserRole.REFEREE);
+        User referee2 = createUser("Referee Two", "ref2",  UserRole.REFEREE);
 
         // --- Athleten ---
         Athlete a1 = createAthlete("Max Mustermann", "GER", biathlon);
         Athlete a2 = createAthlete("John Doe",       "USA", biathlon);
         Athlete a3 = createAthlete("Anna Svensson",  "SWE", skispringen);
 
+        // Beispiel-Ergebnis
         Result r1 = new Result();
         r1.setAthlete(a1);
         r1.setSport(biathlon);
@@ -67,12 +70,12 @@ public class DataInitializer implements CommandLineRunner {
         return athleteRepository.save(a);
     }
 
-    private User createUser(String name, String username, boolean admin) {
+    private User createUser(String name, String username, UserRole role) {
         User u = new User();
         u.setName(name);
         u.setUsername(username);
-        u.setPassword("test123"); // später verschlüsseln
-        u.setAdmin(admin);
+        u.setPassword(passwordEncoder.encode("test123")); // Login-Passwort
+        u.setRole(role);
         u.setActive(true);
         return userRepository.save(u);
     }
