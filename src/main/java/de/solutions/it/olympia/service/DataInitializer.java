@@ -7,6 +7,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+
 @Component
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
@@ -15,6 +17,7 @@ public class DataInitializer implements CommandLineRunner {
     private final AthleteRepository athleteRepository;
     private final UserRepository userRepository;
     private final ResultRepository resultRepository;
+    private final MedalRepository medalRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -23,7 +26,7 @@ public class DataInitializer implements CommandLineRunner {
             return;
         }
 
-        // --- Sportarten ---
+        // Sportarten
         Sport biathlon     = createSport("Biathlon");
         Sport bobsport     = createSport("Bobsport");
         Sport curling      = createSport("Curling");
@@ -32,12 +35,12 @@ public class DataInitializer implements CommandLineRunner {
         Sport skilanglauf  = createSport("Skilanglauf");
         Sport skispringen  = createSport("Skispringen");
 
-        // --- Benutzer ---
+        // User
         User admin    = createUser("Admin",       "admin", UserRole.ADMIN);
         User referee1 = createUser("Referee One", "ref1",  UserRole.REFEREE);
         User referee2 = createUser("Referee Two", "ref2",  UserRole.REFEREE);
 
-        // --- Athleten ---
+        // Athleten
         Athlete a1 = createAthlete("Max Mustermann", "GER", biathlon);
         Athlete a2 = createAthlete("John Doe",       "USA", biathlon);
         Athlete a3 = createAthlete("Anna Svensson",  "SWE", skispringen);
@@ -52,6 +55,11 @@ public class DataInitializer implements CommandLineRunner {
         r1.setStatus(ResultStatus.APPROVED);
         r1.setActive(true);
         resultRepository.save(r1);
+
+        // Beispiel-Medaillen
+        createMedal(a1, MedalType.GOLD);
+        createMedal(a2, MedalType.SILVER);
+        createMedal(a3, MedalType.BRONZE);
     }
 
     private Sport createSport(String name) {
@@ -74,9 +82,18 @@ public class DataInitializer implements CommandLineRunner {
         User u = new User();
         u.setName(name);
         u.setUsername(username);
-        u.setPassword(passwordEncoder.encode("test123")); // Login-Passwort
+        u.setPassword(passwordEncoder.encode("test123"));
         u.setRole(role);
         u.setActive(true);
         return userRepository.save(u);
+    }
+
+    private void createMedal(Athlete athlete, MedalType type) {
+        Medal m = new Medal();
+        m.setAthlete(athlete);
+        m.setMedalType(type);
+        m.setDate(LocalDate.of(2026, 2, 10));
+        m.setActive(true);
+        medalRepository.save(m);
     }
 }

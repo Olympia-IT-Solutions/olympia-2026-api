@@ -33,11 +33,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/sports/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/athletes/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/results/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/medals/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/results/**")
                         .hasAnyRole("REFEREE", "ADMIN")
                         .anyRequest().authenticated()
                 )
-                .httpBasic(Customizer.withDefaults()); // Basic Auth
+                .httpBasic(Customizer.withDefaults());
 
         return http.build();
     }
