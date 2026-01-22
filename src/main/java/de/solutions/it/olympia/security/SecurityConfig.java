@@ -19,16 +19,12 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain apiSecurity(HttpSecurity http) throws Exception {
         http
+                .securityMatcher("/api/**")
                 .csrf(csrf -> csrf.disable())
                 .userDetailsService(userDetailsService)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html"
-                        ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/health/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/sports/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/athletes/**").permitAll()
@@ -36,6 +32,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/medals/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/results/**")
                         .hasAnyRole("REFEREE", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/results/**")
+                        .hasAnyRole("REFEREE", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/results/**")
+                        .hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .httpBasic(Customizer.withDefaults());

@@ -1,12 +1,17 @@
 package de.solutions.it.olympia.controller;
 
 import de.solutions.it.olympia.dto.CreateResultRequest;
+import de.solutions.it.olympia.dto.ResultListItemDto;
 import de.solutions.it.olympia.model.*;
 import de.solutions.it.olympia.repository.AthleteRepository;
 import de.solutions.it.olympia.repository.ResultRepository;
 import de.solutions.it.olympia.repository.SportRepository;
 import de.solutions.it.olympia.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -26,11 +31,40 @@ public class ResultController {
     private final UserRepository userRepository;
 
     @GetMapping("/by-sport/{sportId}")
-    public List<Result> getResultsBySport(@PathVariable Long sportId) {
-        return resultRepository.findBySportIdAndStatusAndActiveTrue(
-                sportId,
-                ResultStatus.APPROVED
-        );
+    public Page<ResultListItemDto> getResultsBySport(
+            @PathVariable Long sportId,
+            @RequestParam(required = false) String country,
+            @PageableDefault(
+                    size = 50,
+                    sort = "value",
+                    direction = Sort.Direction.ASC
+            ) Pageable pageable
+    ) {
+        Page<Result> page;
+
+        if (country != null && !country.isBlank()) {
+            page = resultRepository
+                    .findBySport_IdAndAthlete_CountryAndActiveTrue(sportId, country, pageable);
+        } else {
+            page = resultRepository
+                    .findBySport_IdAndActiveTrue(sportId, pageable);
+        }
+
+        return page.map(result -> {
+            Athlete athlete = result.getAthlete();
+            Sport sport = result.getSport();
+
+            return ResultListItemDto.builder()
+                    .id(result.getId())
+                    .athleteId(athlete.getId())
+                    .athleteName(athlete.getName())
+                    .country(athlete.getCountry())
+                    .sportId(sport.getId())
+                    .sportName(sport.getName())
+                    .value(result.getValue())
+                    .status(result.getStatus())
+                    .build();
+        });
     }
 
     @PostMapping
