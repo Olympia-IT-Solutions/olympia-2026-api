@@ -17,7 +17,7 @@ import java.time.Instant;
 @RestController
 @RequestMapping("/api/health")
 @RequiredArgsConstructor
-public class HealthController {
+public final class HealthController {
 
     private final SportRepository sportRepository;
     private final AthleteRepository athleteRepository;

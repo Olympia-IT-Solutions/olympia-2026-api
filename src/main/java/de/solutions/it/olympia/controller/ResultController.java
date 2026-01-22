@@ -18,7 +18,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/results")
 @RequiredArgsConstructor
-public class ResultController {
+public final class ResultController {
 
     private final ResultRepository resultRepository;
     private final AthleteRepository athleteRepository;
