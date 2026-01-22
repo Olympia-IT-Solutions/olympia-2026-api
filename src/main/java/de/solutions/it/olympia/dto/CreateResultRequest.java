@@ -3,7 +3,7 @@ package de.solutions.it.olympia.dto;
 import lombok.Data;
 
 @Data
-public final class CreateResultRequest {
+public class CreateResultRequest {
 
     private Long athleteId;
     private Long sportId;

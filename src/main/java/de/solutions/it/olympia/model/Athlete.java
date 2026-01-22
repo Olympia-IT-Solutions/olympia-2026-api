@@ -10,7 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public final class Athlete {
+public class Athlete {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
