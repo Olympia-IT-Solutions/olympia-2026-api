@@ -3,10 +3,8 @@ package de.solutions.it.olympia.controller;
 import de.solutions.it.olympia.dto.CreateResultRequest;
 import de.solutions.it.olympia.dto.ResultListItemDto;
 import de.solutions.it.olympia.model.*;
-import de.solutions.it.olympia.repository.AthleteRepository;
-import de.solutions.it.olympia.repository.ResultRepository;
-import de.solutions.it.olympia.repository.SportRepository;
-import de.solutions.it.olympia.repository.UserRepository;
+import de.solutions.it.olympia.repository.*;
+import de.solutions.it.olympia.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,8 +13,11 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,7 +30,15 @@ public class ResultController {
     private final AthleteRepository athleteRepository;
     private final SportRepository sportRepository;
     private final UserRepository userRepository;
+    private final MedalRepository medalRepository;
 
+
+    /**
+     * Ergebnistabelle für einen Sport:
+     * - 50 Einträge pro Seite (Default)
+     * - optionaler Länderfilter (?country=GER)
+     * - liefert pro Zeile auch die Medaille des Athleten in diesem Sport
+     */
     @GetMapping("/by-sport/{sportId}")
     public Page<ResultListItemDto> getResultsBySport(
             @PathVariable Long sportId,
@@ -54,6 +63,15 @@ public class ResultController {
             Athlete athlete = result.getAthlete();
             Sport sport = result.getSport();
 
+            var medalOpt = medalRepository
+                    .findFirstByAthlete_IdAndAthlete_Sport_IdAndActiveTrue(athlete.getId(), sport.getId());
+
+            MedalType medalType = medalOpt
+                    .map(Medal::getMedalType)
+                    .orElse(null);
+
+            boolean hasMedal = medalType != null;
+
             return ResultListItemDto.builder()
                     .id(result.getId())
                     .athleteId(athlete.getId())
@@ -63,6 +81,8 @@ public class ResultController {
                     .sportName(sport.getName())
                     .value(result.getValue())
                     .status(result.getStatus())
+                    .medalType(medalType)
+                    .hasMedal(hasMedal)
                     .build();
         });
     }
@@ -70,36 +90,31 @@ public class ResultController {
     @PostMapping
     public ResponseEntity<Result> createResult(
             @RequestBody CreateResultRequest request,
-            Authentication authentication
+            @AuthenticationPrincipal CustomUserDetails currentUser
     ) {
-        String username = authentication.getName();
-        User user = userRepository.findByUsername(username).orElse(null);
-        if (user == null || !user.isActive()) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        Athlete athlete = athleteRepository.findById(request.getAthleteId())
+                .orElseThrow(() -> new IllegalArgumentException("Athlete not found"));
 
-        Optional<Sport> sportOpt = sportRepository.findById(request.getSportId());
-        if (sportOpt.isEmpty()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        Sport sport = sportOpt.get();
+        Sport sport = sportRepository.findById(request.getSportId())
+                .orElseThrow(() -> new IllegalArgumentException("Sport not found"));
 
-        Optional<Athlete> athleteOpt = athleteRepository.findById(request.getAthleteId());
-        if (athleteOpt.isEmpty()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        Athlete athlete = athleteOpt.get();
-
-        // Athlet muss zur Sportart passen
-        if (!athlete.getSport().getId().equals(sport.getId())) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-
-        if (request.getValue() == null || request.getValue().isBlank()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        User creator = userRepository.findByUsername(currentUser.getUsername())
+                .orElseThrow(() -> new IllegalStateException("Current user not found"));
 
         Result result = new Result();
         result.setAthlete(athlete);
         result.setSport(sport);
-        result.setCreatedBy(user);
-        result.setApprovedBy(null);
-        result.setValue(request.getValue());
+        result.setCreatedBy(creator);
         result.setStatus(ResultStatus.PENDING);
+        result.setValue(request.getValue());
+        result.setTimestamp(OffsetDateTime.now().toInstant());
         result.setActive(true);
 
         Result saved = resultRepository.save(result);
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+
+        return ResponseEntity
+                .created(URI.create("/api/results/" + saved.getId()))
+                .body(saved);
     }
 
     @PostMapping("/{id}/approve")
@@ -117,7 +132,8 @@ public class ResultController {
         User approver = userRepository.findByUsername(username).orElse(null);
         if (approver == null || !approver.isActive()) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 
-        if (result.getCreatedBy().getId().equals(approver.getId())) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        if (result.getCreatedBy().getId().equals(approver.getId()))
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 
         result.setApprovedBy(approver);
         result.setStatus(ResultStatus.APPROVED);
@@ -134,7 +150,8 @@ public class ResultController {
         String username = authentication.getName();
         User admin = userRepository.findByUsername(username).orElse(null);
 
-        if (admin == null || !admin.isActive() || admin.getRole() != UserRole.ADMIN) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        if (admin == null || !admin.isActive() || admin.getRole() != UserRole.ADMIN)
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 
         Optional<Result> resultOpt = resultRepository.findById(id);
         if (resultOpt.isEmpty()) return ResponseEntity.notFound().build();

@@ -1,5 +1,6 @@
 package de.solutions.it.olympia.dto;
 
+import de.solutions.it.olympia.model.MedalType;
 import de.solutions.it.olympia.model.ResultStatus;
 import lombok.Builder;
 import lombok.Value;
@@ -17,6 +18,9 @@ public class ResultListItemDto {
     Long sportId;
     String sportName;
 
-    String value;          // z.B. Zeit, Punkte etc.
-    ResultStatus status;   // APPROVED, PENDING, REJECTED ...
+    String value;
+    ResultStatus status;
+
+    MedalType medalType;
+    boolean hasMedal;
 }

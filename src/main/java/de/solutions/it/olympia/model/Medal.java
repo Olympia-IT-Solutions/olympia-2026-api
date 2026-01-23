@@ -12,14 +12,14 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public final class Medal {
+public class Medal {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "sportler_id")
+    @JoinColumn(name = "athlete_id")
     private Athlete athlete;
 
     @Enumerated(EnumType.STRING)
