@@ -1,0 +1,3 @@
+### Approve Result mit ref2
+POST http://localhost:8080/api/results/3/approve
+Authorization: Basic cmVmMjp0ZXN0MTIz

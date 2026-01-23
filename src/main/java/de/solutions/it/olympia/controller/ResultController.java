@@ -126,14 +126,16 @@ public class ResultController {
         if (resultOpt.isEmpty()) return ResponseEntity.notFound().build();
         Result result = resultOpt.get();
 
-        if (result.getStatus() != ResultStatus.PENDING) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-
+        if (result.getStatus() != ResultStatus.PENDING) {
+            return ResponseEntity.badRequest().header("X-Error", "Result is not PENDING").build();
+        }
         String username = authentication.getName();
         User approver = userRepository.findByUsername(username).orElse(null);
         if (approver == null || !approver.isActive()) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 
-        if (result.getCreatedBy().getId().equals(approver.getId()))
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        if (result.getCreatedBy().getId().equals(approver.getId())) {
+            return ResponseEntity.badRequest().header("X-Error", "Approver equals creator").build();
+        }
 
         result.setApprovedBy(approver);
         result.setStatus(ResultStatus.APPROVED);
@@ -163,4 +165,34 @@ public class ResultController {
         Result saved = resultRepository.save(result);
         return ResponseEntity.ok(saved);
     }
+
+    @PostMapping("/{id}/reject")
+    public ResponseEntity<Result> rejectResult(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        Optional<Result> resultOpt = resultRepository.findById(id);
+        if (resultOpt.isEmpty()) return ResponseEntity.notFound().build();
+        Result result = resultOpt.get();
+
+        if (result.getStatus() != ResultStatus.PENDING) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+        User reviewer = userRepository.findByUsername(authentication.getName()).orElse(null);
+        if (reviewer == null || !reviewer.isActive()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        if (result.getCreatedBy().getId().equals(reviewer.getId())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+        result.setApprovedBy(reviewer);
+        result.setStatus(ResultStatus.REJECTED);
+        result.setActive(true);
+
+        return ResponseEntity.ok(resultRepository.save(result));
+    }
+
 }
