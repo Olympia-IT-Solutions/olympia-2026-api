@@ -11,17 +11,15 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/medals")
 @RequiredArgsConstructor
-public final class MedalController {
+public class MedalController {
 
     private final MedalService medalService;
 
-    // Medaillenspiegel aller Länder
     @GetMapping("/table")
     public List<CountryMedalSummary> getMedalTable() {
         return medalService.getCountryMedalTable();
     }
 
-    // Medaillenspiegel für ein bestimmtes Land (z.B. GER)
     @GetMapping("/by-country/{country}")
     public List<AthleteMedalView> getMedalsByCountry(@PathVariable String country) {
         return medalService.getMedalsByCountry(country);

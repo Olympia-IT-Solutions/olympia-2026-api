@@ -5,7 +5,7 @@ import lombok.Value;
 
 @Value
 @Builder
-public final class CountryMedalSummary {
+public class CountryMedalSummary {
 
     String country;
     long gold;

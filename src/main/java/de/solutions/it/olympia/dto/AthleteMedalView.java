@@ -6,10 +6,13 @@ import lombok.Value;
 
 @Value
 @Builder
-public final class AthleteMedalView {
+public class AthleteMedalView {
 
+    Long resultId;
     Long athleteId;
+
     String athleteName;
     String sportName;
+
     MedalType medalType;
 }

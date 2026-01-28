@@ -64,8 +64,7 @@ public class ResultController {
             Athlete athlete = result.getAthlete();
             Sport sport = result.getSport();
 
-            var medalOpt = medalRepository
-                    .findFirstByAthlete_IdAndAthlete_Sport_IdAndActiveTrue(athlete.getId(), sport.getId());
+            var medalOpt = medalRepository.findByResult_IdAndActiveTrue(result.getId());
 
             MedalType medalType = medalOpt
                     .map(Medal::getMedalType)
@@ -123,19 +122,23 @@ public class ResultController {
             @PathVariable Long id,
             Authentication authentication
     ) {
-        Optional<Result> resultOpt = resultRepository.findById(id);
-        if (resultOpt.isEmpty()) return ResponseEntity.notFound().build();
-        Result result = resultOpt.get();
+        Result result = resultRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Result not found"));
 
         if (result.getStatus() != ResultStatus.PENDING) {
-            return ResponseEntity.badRequest().header("X-Error", "Result is not PENDING").build();
+            return ResponseEntity.badRequest().build();
         }
+
         String username = authentication.getName();
-        User approver = userRepository.findByUsername(username).orElse(null);
-        if (approver == null || !approver.isActive()) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        User approver = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalStateException("User not found"));
+
+        if (!approver.isActive()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
 
         if (result.getCreatedBy().getId().equals(approver.getId())) {
-            return ResponseEntity.badRequest().header("X-Error", "Approver equals creator").build();
+            return ResponseEntity.badRequest().build();
         }
 
         result.setApprovedBy(approver);
@@ -143,30 +146,12 @@ public class ResultController {
 
         Result saved = resultRepository.save(result);
 
-        Integer rank = result.getRank(); // falls du rank einbaust
-        if (rank != null && rank <= 3) {
-            MedalType type = switch (rank) {
-                case 1 -> MedalType.GOLD;
-                case 2 -> MedalType.SILVER;
-                case 3 -> MedalType.BRONZE;
-                default -> null;
-            };
-
-            if (type != null) {
-                Medal medal = medalRepository.findByResult_IdAndActiveTrue(result.getId())
-                        .orElseGet(Medal::new);
-
-                medal.setResult(result);
-                medal.setMedalType(type);
-                medal.setDate(LocalDate.now());
-                medal.setActive(true);
-
-                medalRepository.save(medal);
-            }
-        }
+        // ✅ MEDAILLE AUTOMATISCH ERSTELLEN
+        createOrUpdateMedalForResult(saved);
 
         return ResponseEntity.ok(saved);
     }
+
 
     @PostMapping("/{id}/invalidate")
     public ResponseEntity<Result> invalidateResult(
@@ -174,28 +159,30 @@ public class ResultController {
             Authentication authentication
     ) {
         String username = authentication.getName();
-        User admin = userRepository.findByUsername(username).orElse(null);
+        User admin = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalStateException("User not found"));
 
-        if (admin == null || !admin.isActive() || admin.getRole() != UserRole.ADMIN)
+        if (!admin.isActive() || admin.getRole() != UserRole.ADMIN) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
 
-        Optional<Result> resultOpt = resultRepository.findById(id);
-        if (resultOpt.isEmpty()) return ResponseEntity.notFound().build();
-        Result result = resultOpt.get();
+        Result result = resultRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Result not found"));
 
         result.setActive(false);
         result.setStatus(ResultStatus.REJECTED);
 
+        Result saved = resultRepository.save(result);
+
+        // ❌ MEDAILLE DEAKTIVIEREN
         medalRepository.findByResult_IdAndActiveTrue(result.getId())
-                .ifPresent(m -> {
-                    m.setActive(false);
-                    medalRepository.save(m);
+                .ifPresent(medal -> {
+                    medal.setActive(false);
+                    medalRepository.save(medal);
                 });
 
-        Result saved = resultRepository.save(result);
         return ResponseEntity.ok(saved);
     }
-
     @PostMapping("/{id}/reject")
     public ResponseEntity<Result> rejectResult(
             @PathVariable Long id,
@@ -224,5 +211,36 @@ public class ResultController {
 
         return ResponseEntity.ok(resultRepository.save(result));
     }
+
+    private void createOrUpdateMedalForResult(Result result) {
+
+        if (result.getRank() == null) return;
+
+        MedalType type = switch (result.getRank()) {
+            case 1 -> MedalType.GOLD;
+            case 2 -> MedalType.SILVER;
+            case 3 -> MedalType.BRONZE;
+            default -> null;
+        };
+
+        if (type == null) return;
+
+        medalRepository.findByResult_IdAndActiveTrue(result.getId())
+                .ifPresentOrElse(
+                        medal -> {
+                            medal.setMedalType(type);
+                            medalRepository.save(medal);
+                        },
+                        () -> {
+                            Medal medal = new Medal();
+                            medal.setResult(result);
+                            medal.setMedalType(type);
+                            medal.setDate(java.time.LocalDate.now());
+                            medal.setActive(true);
+                            medalRepository.save(medal);
+                        }
+                );
+    }
+
 
 }

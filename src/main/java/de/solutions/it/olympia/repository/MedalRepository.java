@@ -9,14 +9,14 @@ import java.util.Optional;
 
 public interface MedalRepository extends JpaRepository<Medal, Long> {
 
-    Optional<Medal> findByResult_IdAndActiveTrue(Long resultId);
-
     List<Medal> findByActiveTrue();
 
-    List<Medal> findByActiveTrueAndAthlete_Country(String country);
+    // Medaillen eines Landes (Country kommt aus Result -> Athlete)
+    List<Medal> findByActiveTrueAndResult_Athlete_Country(String country);
 
+    // Für Medaillenspiegel: nur Gold/Silber/Bronze
     List<Medal> findByActiveTrueAndMedalTypeIn(List<MedalType> medalTypes);
 
-    Optional<Medal> findFirstByAthlete_IdAndAthlete_Sport_IdAndActiveTrue(Long athleteId, Long sportId);
-
+    // Upsert/Lookup für ein Ergebnis
+    Optional<Medal> findByResult_IdAndActiveTrue(Long resultId);
 }
