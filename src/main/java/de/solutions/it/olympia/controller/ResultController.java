@@ -143,8 +143,9 @@ public class ResultController {
 
         Result saved = resultRepository.save(result);
 
-        if (result.getRank() != null && result.getRank() <= 3) {
-            MedalType type = switch (result.getRank()) {
+        Integer rank = result.getRank(); // falls du rank einbaust
+        if (rank != null && rank <= 3) {
+            MedalType type = switch (rank) {
                 case 1 -> MedalType.GOLD;
                 case 2 -> MedalType.SILVER;
                 case 3 -> MedalType.BRONZE;
@@ -152,14 +153,10 @@ public class ResultController {
             };
 
             if (type != null) {
-                Medal medal = medalRepository
-                        .findFirstByAthlete_IdAndAthlete_Sport_IdAndActiveTrue(
-                                result.getAthlete().getId(),
-                                result.getSport().getId()
-                        )
+                Medal medal = medalRepository.findByResult_IdAndActiveTrue(result.getId())
                         .orElseGet(Medal::new);
 
-                medal.setAthlete(result.getAthlete());
+                medal.setResult(result);
                 medal.setMedalType(type);
                 medal.setDate(LocalDate.now());
                 medal.setActive(true);
@@ -188,6 +185,12 @@ public class ResultController {
 
         result.setActive(false);
         result.setStatus(ResultStatus.REJECTED);
+
+        medalRepository.findByResult_IdAndActiveTrue(result.getId())
+                .ifPresent(m -> {
+                    m.setActive(false);
+                    medalRepository.save(m);
+                });
 
         Result saved = resultRepository.save(result);
         return ResponseEntity.ok(saved);

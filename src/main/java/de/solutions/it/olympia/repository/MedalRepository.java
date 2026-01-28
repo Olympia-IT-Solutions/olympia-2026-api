@@ -9,6 +9,8 @@ import java.util.Optional;
 
 public interface MedalRepository extends JpaRepository<Medal, Long> {
 
+    Optional<Medal> findByResult_IdAndActiveTrue(Long resultId);
+
     List<Medal> findByActiveTrue();
 
     List<Medal> findByActiveTrueAndAthlete_Country(String country);

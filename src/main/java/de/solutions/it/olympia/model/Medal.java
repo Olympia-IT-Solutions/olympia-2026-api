@@ -7,10 +7,8 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "medals")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
 @Builder
 public class Medal {
 
@@ -18,13 +16,14 @@ public class Medal {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "athlete_id")
-    private Athlete athlete;
+    // ✅ direkte Referenz auf das freigegebene Ergebnis
+    @OneToOne(optional = false)
+    @JoinColumn(name = "result_id", nullable = false, unique = true)
+    private Result result;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "ergebnis", nullable = false)
-    private MedalType medalType;   // GOLD, SILVER, BRONZE, DISQUALIFIED
+    private MedalType medalType;
 
     @Column(name = "datum", nullable = false)
     private LocalDate date;
@@ -32,8 +31,4 @@ public class Medal {
     @Builder.Default
     @Column(nullable = false)
     private boolean active = true;
-
-    @OneToOne(optional = false)
-    @JoinColumn(name = "result_id", unique = true)
-    private Result result;
 }
