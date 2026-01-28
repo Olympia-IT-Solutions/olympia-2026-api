@@ -17,6 +17,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -141,6 +142,32 @@ public class ResultController {
         result.setStatus(ResultStatus.APPROVED);
 
         Result saved = resultRepository.save(result);
+
+        if (result.getRank() != null && result.getRank() <= 3) {
+            MedalType type = switch (result.getRank()) {
+                case 1 -> MedalType.GOLD;
+                case 2 -> MedalType.SILVER;
+                case 3 -> MedalType.BRONZE;
+                default -> null;
+            };
+
+            if (type != null) {
+                Medal medal = medalRepository
+                        .findFirstByAthlete_IdAndAthlete_Sport_IdAndActiveTrue(
+                                result.getAthlete().getId(),
+                                result.getSport().getId()
+                        )
+                        .orElseGet(Medal::new);
+
+                medal.setAthlete(result.getAthlete());
+                medal.setMedalType(type);
+                medal.setDate(LocalDate.now());
+                medal.setActive(true);
+
+                medalRepository.save(medal);
+            }
+        }
+
         return ResponseEntity.ok(saved);
     }
 

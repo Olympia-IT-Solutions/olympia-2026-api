@@ -32,4 +32,8 @@ public class Medal {
     @Builder.Default
     @Column(nullable = false)
     private boolean active = true;
+
+    @OneToOne(optional = false)
+    @JoinColumn(name = "result_id", unique = true)
+    private Result result;
 }

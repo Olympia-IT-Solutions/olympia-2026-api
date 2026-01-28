@@ -8,4 +8,6 @@ public class CreateResultRequest {
     private Long athleteId;
     private Long sportId;
     private String value;
+    private Integer rank;
+
 }

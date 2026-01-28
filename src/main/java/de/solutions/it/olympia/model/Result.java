@@ -56,4 +56,7 @@ public class Result {
             timestamp = Instant.now();
         }
     }
+
+    @Column
+    private Integer rank; // 1 = Gold, 2 = Silber, 3 = Bronze
 }
