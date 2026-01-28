@@ -32,3 +32,15 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+bootJar {
+    enabled = true
+}
+
+jar {
+    enabled = false
+}
+
+springBoot {
+    mainClass = 'de.solutions.it.olympia.OlympiaApplication'
+}
