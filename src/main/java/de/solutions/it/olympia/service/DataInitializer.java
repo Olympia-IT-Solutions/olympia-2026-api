@@ -22,45 +22,33 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (sportRepository.count() > 0) {
-            return;
+
+        // 1) Sportarten einmalig anlegen
+        if (sportRepository.count() == 0) {
+            seedSports();
         }
 
-        // Sportarten
-        Sport biathlon     = createSport("Biathlon");
-        Sport bobsport     = createSport("Bobsport");
-        Sport curling      = createSport("Curling");
-        Sport eishockey    = createSport("Eishockey");
-        Sport eiskunstlauf = createSport("Eiskunstlauf");
-        Sport skilanglauf  = createSport("Skilanglauf");
-        Sport skispringen  = createSport("Skispringen");
+        // 2) Users einmalig anlegen
+        if (userRepository.count() == 0) {
+            seedUsers();
+        }
 
-        // User
-        User admin    = createUser("Admin",       "admin", UserRole.ADMIN);
-        User referee1 = createUser("Referee One", "ref1",  UserRole.REFEREE);
-        User referee2 = createUser("Referee Two", "ref2",  UserRole.REFEREE);
+        // 3) Athleten einmalig anlegen
+        if (athleteRepository.count() == 0) {
+            seedAthletes();
+        }
 
-        // Athleten
-        Athlete a1 = createAthlete("Max Mustermann", "GER", biathlon);
-        Athlete a2 = createAthlete("John Doe",       "USA", biathlon);
-        Athlete a3 = createAthlete("Anna Svensson",  "SWE", skispringen);
+        // 4) Results einmalig anlegen (optional)
+        if (resultRepository.count() == 0) {
+            seedResults();
+        }
 
-        // Beispiel-Ergebnis
-        Result r1 = new Result();
-        r1.setAthlete(a1);
-        r1.setSport(biathlon);
-        r1.setCreatedBy(admin);
-        r1.setApprovedBy(admin);
-        r1.setValue("00:25:34.5");
-        r1.setStatus(ResultStatus.APPROVED);
-        r1.setActive(true);
-        resultRepository.save(r1);
-
-        // Beispiel-Medaillen
-        createMedal(a1, MedalType.GOLD);
-        createMedal(a2, MedalType.SILVER);
-        createMedal(a3, MedalType.BRONZE);
+        // 5) Medals einmalig anlegen (optional)
+        if (medalRepository.count() == 0) {
+            seedMedals();
+        }
     }
+
 
     private Sport createSport(String name) {
         Sport s = new Sport();
@@ -96,4 +84,56 @@ public class DataInitializer implements CommandLineRunner {
         m.setActive(true);
         medalRepository.save(m);
     }
+
+    private void seedSports() {
+        createSport("Biathlon");
+        createSport("Bobsport");
+        createSport("Curling");
+        createSport("Eishockey");
+        createSport("Eiskunstlauf");
+        createSport("Skilanglauf");
+        createSport("Skispringen");
+    }
+
+    private void seedUsers() {
+        createUser("Admin", "admin", UserRole.ADMIN);
+        createUser("Referee One", "ref1", UserRole.REFEREE);
+        createUser("Referee Two", "ref2", UserRole.REFEREE);
+    }
+
+    private void seedAthletes() {
+        Sport biathlon = sportRepository.findByName("Biathlon").orElseThrow();
+        Sport skispringen = sportRepository.findByName("Skispringen").orElseThrow();
+
+        createAthlete("Max Mustermann", "GER", biathlon);
+        createAthlete("John Doe", "USA", biathlon);
+        createAthlete("Anna Svensson", "SWE", skispringen);
+    }
+
+    private void seedResults() {
+        Sport biathlon = sportRepository.findByName("Biathlon").orElseThrow();
+        Athlete a1 = athleteRepository.findByName("Max Mustermann").orElseThrow();
+        User admin = userRepository.findByUsername("admin").orElseThrow();
+
+        Result r1 = new Result();
+        r1.setAthlete(a1);
+        r1.setSport(biathlon);
+        r1.setCreatedBy(admin);
+        r1.setApprovedBy(admin);
+        r1.setValue("00:25:34.5");
+        r1.setStatus(ResultStatus.APPROVED);
+        r1.setActive(true);
+        resultRepository.save(r1);
+    }
+
+    private void seedMedals() {
+        Athlete a1 = athleteRepository.findByName("Max Mustermann").orElseThrow();
+        Athlete a2 = athleteRepository.findByName("John Doe").orElseThrow();
+        Athlete a3 = athleteRepository.findByName("Anna Svensson").orElseThrow();
+
+        createMedal(a1, MedalType.GOLD);
+        createMedal(a2, MedalType.SILVER);
+        createMedal(a3, MedalType.BRONZE);
+    }
+
 }
