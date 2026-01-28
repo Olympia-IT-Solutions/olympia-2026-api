@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN ./gradlew clean build -x test
+RUN chmod +x gradlew && ./gradlew clean build -x test
 
 EXPOSE 8080
 
