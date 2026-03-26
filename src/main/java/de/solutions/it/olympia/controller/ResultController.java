@@ -2,6 +2,7 @@ package de.solutions.it.olympia.controller;
 
 import de.solutions.it.olympia.dto.CreateResultRequest;
 import de.solutions.it.olympia.dto.ResultListItemDto;
+import de.solutions.it.olympia.dto.UpdateResultRequest;
 import de.solutions.it.olympia.model.*;
 import de.solutions.it.olympia.repository.*;
 import de.solutions.it.olympia.security.CustomUserDetails;
@@ -242,5 +243,45 @@ public class ResultController {
                 );
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Result> updateResult(
+            @PathVariable Long id,
+            @RequestBody UpdateResultRequest request,
+            Authentication authentication
+    ) {
+        Result result = resultRepository.findById(id).orElse(null);
+        if (result == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (result.getStatus() != ResultStatus.PENDING) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        String username = authentication.getName();
+        User currentUser = userRepository.findByUsername(username).orElse(null);
+
+        if (currentUser == null || !currentUser.isActive()) {
+            return ResponseEntity.status(403).build();
+        }
+
+        boolean isAdmin = currentUser.getRole() == UserRole.ADMIN;
+        boolean isCreator = result.getCreatedBy().getId().equals(currentUser.getId());
+
+        if (!isAdmin && !isCreator) {
+            return ResponseEntity.status(403).build();
+        }
+
+        if (request.getValue() != null) {
+            result.setValue(request.getValue());
+        }
+
+        if (request.getRank() != null) {
+            result.setRank(request.getRank());
+        }
+
+        Result saved = resultRepository.save(result);
+        return ResponseEntity.ok(saved);
+    }
 
 }

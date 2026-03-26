@@ -1,13 +1,13 @@
 package de.solutions.it.olympia.controller;
 
-import de.solutions.it.olympia.dto.LoginRequest;
-import de.solutions.it.olympia.dto.LoginResponse;
+import de.solutions.it.olympia.dto.AuthRequestDto;
+import de.solutions.it.olympia.dto.AuthResponseDto;
 import de.solutions.it.olympia.model.User;
 import de.solutions.it.olympia.repository.UserRepository;
 import de.solutions.it.olympia.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.authentication.*;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,27 +15,30 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final UserRepository userRepository;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest req) {
-        User user = userRepository.findByUsername(req.getUsername()).orElse(null);
-        if (user == null || !user.isActive()) {
-            return ResponseEntity.status(401).build();
-        }
+    public ResponseEntity<AuthResponseDto> login(@RequestBody AuthRequestDto request) {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getUsername(),
+                        request.getPassword()
+                )
+        );
 
-        if (!passwordEncoder.matches(req.getPassword(), user.getPassword())) {
-            return ResponseEntity.status(401).build();
-        }
+        User user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         String token = jwtService.generateToken(user.getUsername(), user.getRole().name());
 
-        return ResponseEntity.ok(LoginResponse.builder()
-                .token(token)
-                .tokenType("Bearer")
-                .expiresInSeconds(jwtService.getExpirationSeconds())
-                .build());
+        return ResponseEntity.ok(
+                AuthResponseDto.builder()
+                        .token(token)
+                        .username(user.getUsername())
+                        .role(user.getRole())
+                        .build()
+        );
     }
 }

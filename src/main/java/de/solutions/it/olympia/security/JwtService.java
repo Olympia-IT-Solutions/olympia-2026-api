@@ -14,23 +14,23 @@ import java.util.Date;
 public class JwtService {
 
     private final SecretKey key;
-    private final long expirationSeconds;
+    private final long expirationMinutes;
 
     public JwtService(
-            @Value("${SECURITY_JWT_SECRET:${security.jwt.secret}}") String secret,
-            @Value("${SECURITY_JWT_EXPIRATIONMINUTES:${security.jwt.expirationMinutes:240}}") long expirationMinutes
+            @Value("${security.jwt.secret}") String secret,
+            @Value("${security.jwt.expirationMinutes:240}") long expirationMinutes
     ) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        this.expirationSeconds = expirationMinutes * 60L;
+        this.expirationMinutes = expirationMinutes;
     }
 
     public String generateToken(String username, String role) {
         Instant now = Instant.now();
-        Instant exp = now.plusSeconds(expirationSeconds);
+        Instant exp = now.plusSeconds(expirationMinutes * 60);
 
         return Jwts.builder()
                 .subject(username)
-                .claim("role", role) // "ADMIN" / "REFEREE"
+                .claim("role", role)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(exp))
                 .signWith(key)
@@ -48,14 +48,13 @@ public class JwtService {
 
     public boolean isValid(String token) {
         try {
-            Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
+            Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token);
             return true;
         } catch (Exception e) {
             return false;
         }
-    }
-
-    public long getExpirationSeconds() {
-        return expirationSeconds;
     }
 }
