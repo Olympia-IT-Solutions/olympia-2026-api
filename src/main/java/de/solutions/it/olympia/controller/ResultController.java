@@ -96,15 +96,19 @@ public class ResultController {
     @PostMapping
     public ResponseEntity<Result> createResult(
             @RequestBody CreateResultRequest request,
-            @AuthenticationPrincipal CustomUserDetails currentUser
+            Authentication authentication
     ) {
+        if (authentication == null || authentication.getName() == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         Athlete athlete = athleteRepository.findById(request.getAthleteId())
                 .orElseThrow(() -> new IllegalArgumentException("Athlete not found"));
 
         Sport sport = sportRepository.findById(request.getSportId())
                 .orElseThrow(() -> new IllegalArgumentException("Sport not found"));
 
-        User creator = userRepository.findByUsername(currentUser.getUsername())
+        User creator = userRepository.findByUsername(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Current user not found"));
 
         Result result = new Result();
@@ -113,7 +117,7 @@ public class ResultController {
         result.setCreatedBy(creator);
         result.setStatus(ResultStatus.PENDING);
         result.setValue(request.getValue());
-        result.setTimestamp(OffsetDateTime.now().toInstant());
+        result.setRank(request.getRank());
         result.setActive(true);
 
         Result saved = resultRepository.save(result);
