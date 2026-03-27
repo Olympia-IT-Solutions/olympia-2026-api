@@ -11,12 +11,9 @@ public interface MedalRepository extends JpaRepository<Medal, Long> {
 
     List<Medal> findByActiveTrue();
 
-    // Medaillen eines Landes (Country kommt aus Result -> Athlete)
-    List<Medal> findByActiveTrueAndResult_Athlete_Country(String country);
+    List<Medal> findByActiveTrueAndResult_Athlete_Country_Code(String countryCode);
 
-    // Für Medaillenspiegel: nur Gold/Silber/Bronze
     List<Medal> findByActiveTrueAndMedalTypeIn(List<MedalType> medalTypes);
 
-    // Upsert/Lookup für ein Ergebnis
     Optional<Medal> findByResult_IdAndActiveTrue(Long resultId);
 }

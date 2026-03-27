@@ -24,8 +24,9 @@ public class Athlete {
     @JoinColumn(name = "sportart_id")
     private Sport sport;
 
-    @Column(nullable = false)
-    private String country;   // z.B. "GER", "USA"
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "country_code", referencedColumnName = "code")
+    private Country country;
 
     @Builder.Default
     @Column(nullable = false)

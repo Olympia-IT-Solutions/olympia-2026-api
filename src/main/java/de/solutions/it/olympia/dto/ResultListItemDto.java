@@ -13,13 +13,23 @@ public class ResultListItemDto {
 
     Long athleteId;
     String athleteName;
-    String country;
+
+    String countryCode;
+    String countryName;
 
     Long sportId;
     String sportName;
 
     String value;
+    Integer rank;
+
     ResultStatus status;
+
+    Long createdById;
+    String createdByUsername;
+
+    Long approvedById;
+    String approvedByUsername;
 
     MedalType medalType;
     boolean hasMedal;

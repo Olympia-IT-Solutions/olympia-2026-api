@@ -25,20 +25,19 @@ public class MedalService {
         );
 
         Map<String, long[]> counts = new HashMap<>();
-        // counts[country] = [gold, silver, bronze]
 
         for (Medal medal : medals) {
             Result result = medal.getResult();
             Athlete athlete = result.getAthlete();
-            String country = athlete.getCountry();
+            String countryCode = athlete.getCountry().getCode();
 
-            counts.putIfAbsent(country, new long[]{0, 0, 0});
+            counts.putIfAbsent(countryCode, new long[]{0, 0, 0});
 
             switch (medal.getMedalType()) {
-                case GOLD -> counts.get(country)[0]++;
-                case SILVER -> counts.get(country)[1]++;
-                case BRONZE -> counts.get(country)[2]++;
-                default -> { /* ignore */ }
+                case GOLD -> counts.get(countryCode)[0]++;
+                case SILVER -> counts.get(countryCode)[1]++;
+                case BRONZE -> counts.get(countryCode)[2]++;
+                default -> { }
             }
         }
 
@@ -59,8 +58,8 @@ public class MedalService {
                 .collect(Collectors.toList());
     }
 
-    public List<AthleteMedalView> getMedalsByCountry(String country) {
-        return medalRepository.findByActiveTrueAndResult_Athlete_Country(country).stream()
+    public List<AthleteMedalView> getMedalsByCountry(String countryCode) {
+        return medalRepository.findByActiveTrueAndResult_Athlete_Country_Code(countryCode).stream()
                 .map(medal -> {
                     Result result = medal.getResult();
                     Athlete athlete = result.getAthlete();

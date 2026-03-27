@@ -17,10 +17,10 @@ public class Country {
 
     @Id
     @Column(length = 3, nullable = false)
-    private String code;   // GER, USA, SWE ...
+    private String code;
 
     @Column(nullable = false)
-    private String name;   // Germany, United States ...
+    private String name;
 
     @Builder.Default
     @Column(nullable = false)

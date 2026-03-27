@@ -55,7 +55,7 @@ public class ResultController {
 
         if (country != null && !country.isBlank()) {
             page = resultRepository
-                    .findBySport_IdAndAthlete_CountryAndActiveTrue(sportId, country, pageable);
+                    .findBySport_IdAndAthlete_Country_CodeAndActiveTrue(sportId, country, pageable);
         } else {
             page = resultRepository
                     .findBySport_IdAndActiveTrue(sportId, pageable);
@@ -77,11 +77,17 @@ public class ResultController {
                     .id(result.getId())
                     .athleteId(athlete.getId())
                     .athleteName(athlete.getName())
-                    .country(athlete.getCountry())
+                    .countryCode(athlete.getCountry().getCode())
+                    .countryName(athlete.getCountry().getName())
                     .sportId(sport.getId())
                     .sportName(sport.getName())
                     .value(result.getValue())
+                    .rank(result.getRank())
                     .status(result.getStatus())
+                    .createdById(result.getCreatedBy() != null ? result.getCreatedBy().getId() : null)
+                    .createdByUsername(result.getCreatedBy() != null ? result.getCreatedBy().getUsername() : null)
+                    .approvedById(result.getApprovedBy() != null ? result.getApprovedBy().getId() : null)
+                    .approvedByUsername(result.getApprovedBy() != null ? result.getApprovedBy().getUsername() : null)
                     .medalType(medalType)
                     .hasMedal(hasMedal)
                     .build();

@@ -143,7 +143,9 @@ public class DataInitializer implements CommandLineRunner {
         return sportRepository.save(s);
     }
 
-    private Athlete createAthlete(String name, String country, Sport sport) {
+    private Athlete createAthlete(String name, String countryCode, Sport sport) {
+        Country country = countryRepository.findById(countryCode).orElseThrow();
+
         Athlete a = new Athlete();
         a.setName(name);
         a.setCountry(country);
