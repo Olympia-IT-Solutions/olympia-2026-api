@@ -18,17 +18,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/athletes")
 @RequiredArgsConstructor
-public final class AthleteController {
+public class AthleteController {
 
     private final AthleteRepository athleteRepository;
     private final SportRepository sportRepository;
     private final CountryRepository countryRepository;
-
-
-    @GetMapping("/by-sport/{sportId}")
-    public List<Athlete> getAthletesBySport(@PathVariable Long sportId) {
-        return athleteRepository.findBySportIdAndActiveTrue(sportId);
-    }
 
     @GetMapping
     public List<AthleteListItemDto> getAllAthletes() {
@@ -44,7 +38,7 @@ public final class AthleteController {
             return ResponseEntity.badRequest().build();
         }
 
-        Country country = countryRepository.findById(req.getCountryCode()).orElse(null);
+        Country country = countryRepository.findById(req.getCountryId()).orElse(null);
         if (country == null) {
             return ResponseEntity.badRequest().build();
         }
@@ -64,12 +58,16 @@ public final class AthleteController {
             @PathVariable Long id,
             @RequestBody UpdateAthleteRequest req
     ) {
+        if (req.getId() == null || !req.getId().equals(id)) {
+            return ResponseEntity.badRequest().build();
+        }
+
         Athlete athlete = athleteRepository.findById(id).orElse(null);
         if (athlete == null) {
             return ResponseEntity.notFound().build();
         }
 
-        if (req.getName() != null) {
+        if (req.getName() != null && !req.getName().isBlank()) {
             athlete.setName(req.getName());
         }
 
@@ -81,8 +79,8 @@ public final class AthleteController {
             athlete.setSport(sport);
         }
 
-        if (req.getCountryCode() != null) {
-            Country country = countryRepository.findById(req.getCountryCode()).orElse(null);
+        if (req.getCountryId() != null) {
+            Country country = countryRepository.findById(req.getCountryId()).orElse(null);
             if (country == null) {
                 return ResponseEntity.badRequest().build();
             }
@@ -123,12 +121,12 @@ public final class AthleteController {
         return AthleteListItemDto.builder()
                 .id(athlete.getId())
                 .name(athlete.getName())
-                .countryCode(athlete.getCountry().getCode())
-                .countryName(athlete.getCountry().getName())
-                .sportId(athlete.getSport().getId())
-                .sportName(athlete.getSport().getName())
+                .countryId(athlete.getCountry() != null ? athlete.getCountry().getId() : null)
+                .countryCode(athlete.getCountry() != null ? athlete.getCountry().getCode() : null)
+                .countryName(athlete.getCountry() != null ? athlete.getCountry().getName() : null)
+                .sportId(athlete.getSport() != null ? athlete.getSport().getId() : null)
+                .sportName(athlete.getSport() != null ? athlete.getSport().getName() : null)
                 .active(athlete.isActive())
                 .build();
     }
 }
-

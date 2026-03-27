@@ -11,7 +11,7 @@ public interface MedalRepository extends JpaRepository<Medal, Long> {
 
     List<Medal> findByActiveTrue();
 
-    List<Medal> findByActiveTrueAndResult_Athlete_Country_Code(String countryCode);
+    List<Medal> findByActiveTrueAndResult_Athlete_Country_Id(Long countryId);
 
     List<Medal> findByActiveTrueAndMedalTypeIn(List<MedalType> medalTypes);
 

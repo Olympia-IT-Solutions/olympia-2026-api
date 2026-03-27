@@ -9,6 +9,7 @@ public class AthleteListItemDto {
     Long id;
     String name;
 
+    Long countryId;
     String countryCode;
     String countryName;
 

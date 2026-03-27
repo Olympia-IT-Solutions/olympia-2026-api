@@ -9,9 +9,9 @@ public interface ResultRepository extends JpaRepository<Result, Long> {
 
     Page<Result> findBySport_IdAndActiveTrue(Long sportId, Pageable pageable);
 
-    Page<Result> findBySport_IdAndAthlete_Country_CodeAndActiveTrue(
+    Page<Result> findBySport_IdAndAthlete_Country_IdAndActiveTrue(
             Long sportId,
-            String countryCode,
+            Long countryId,
             Pageable pageable
     );
 }

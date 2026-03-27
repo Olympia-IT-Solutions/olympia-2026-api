@@ -16,7 +16,6 @@ public class Athlete {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Einzelperson oder Teamname
     @Column(nullable = false)
     private String name;
 
@@ -25,7 +24,7 @@ public class Athlete {
     private Sport sport;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "country_code", referencedColumnName = "code")
+    @JoinColumn(name = "country_id")
     private Country country;
 
     @Builder.Default

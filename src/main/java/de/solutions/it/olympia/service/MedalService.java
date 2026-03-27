@@ -28,6 +28,10 @@ public class MedalService {
 
         for (Medal medal : medals) {
             Result result = medal.getResult();
+            if (result == null || result.getAthlete() == null || result.getAthlete().getCountry() == null) {
+                continue;
+            }
+
             Athlete athlete = result.getAthlete();
             String countryCode = athlete.getCountry().getCode();
 
@@ -53,13 +57,12 @@ public class MedalService {
                         .comparingLong(CountryMedalSummary::getGold).reversed()
                         .thenComparingLong(CountryMedalSummary::getSilver).reversed()
                         .thenComparingLong(CountryMedalSummary::getBronze).reversed()
-                        .thenComparing(CountryMedalSummary::getCountry)
-                )
+                        .thenComparing(CountryMedalSummary::getCountry))
                 .collect(Collectors.toList());
     }
 
-    public List<AthleteMedalView> getMedalsByCountry(String countryCode) {
-        return medalRepository.findByActiveTrueAndResult_Athlete_Country_Code(countryCode).stream()
+    public List<AthleteMedalView> getMedalsByCountry(Long countryId) {
+        return medalRepository.findByActiveTrueAndResult_Athlete_Country_Id(countryId).stream()
                 .map(medal -> {
                     Result result = medal.getResult();
                     Athlete athlete = result.getAthlete();

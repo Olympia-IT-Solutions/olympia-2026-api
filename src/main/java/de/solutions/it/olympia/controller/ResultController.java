@@ -44,7 +44,7 @@ public class ResultController {
     @GetMapping("/by-sport/{sportId}")
     public Page<ResultListItemDto> getResultsBySport(
             @PathVariable Long sportId,
-            @RequestParam(required = false) String country,
+            @RequestParam(required = false) Long countryId,
             @PageableDefault(
                     size = 50,
                     sort = "value",
@@ -53,12 +53,10 @@ public class ResultController {
     ) {
         Page<Result> page;
 
-        if (country != null && !country.isBlank()) {
-            page = resultRepository
-                    .findBySport_IdAndAthlete_Country_CodeAndActiveTrue(sportId, country, pageable);
+        if (countryId != null) {
+            page = resultRepository.findBySport_IdAndAthlete_Country_IdAndActiveTrue(sportId, countryId, pageable);
         } else {
-            page = resultRepository
-                    .findBySport_IdAndActiveTrue(sportId, pageable);
+            page = resultRepository.findBySport_IdAndActiveTrue(sportId, pageable);
         }
 
         return page.map(result -> {
@@ -77,8 +75,9 @@ public class ResultController {
                     .id(result.getId())
                     .athleteId(athlete.getId())
                     .athleteName(athlete.getName())
-                    .countryCode(athlete.getCountry().getCode())
-                    .countryName(athlete.getCountry().getName())
+                    .countryId(athlete.getCountry() != null ? athlete.getCountry().getId() : null)
+                    .countryCode(athlete.getCountry() != null ? athlete.getCountry().getCode() : null)
+                    .countryName(athlete.getCountry() != null ? athlete.getCountry().getName() : null)
                     .sportId(sport.getId())
                     .sportName(sport.getName())
                     .value(result.getValue())

@@ -6,5 +6,5 @@ import lombok.Data;
 public class CreateAthleteRequest {
     private String name;
     private Long sportId;
-    private String countryCode;
+    private Long countryId;
 }

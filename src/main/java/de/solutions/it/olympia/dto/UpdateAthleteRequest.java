@@ -4,7 +4,8 @@ import lombok.Data;
 
 @Data
 public class UpdateAthleteRequest {
+    private Long id;
     private String name;
     private Long sportId;
-    private String countryCode;
+    private Long countryId;
 }

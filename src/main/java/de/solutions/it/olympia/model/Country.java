@@ -1,9 +1,6 @@
 package de.solutions.it.olympia.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
@@ -16,8 +13,11 @@ import lombok.*;
 public class Country {
 
     @Id
-    @Column(length = 3, nullable = false)
-    private String code;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(length = 3, nullable = false, unique = true)
+    private String code; 
 
     @Column(nullable = false)
     private String name;

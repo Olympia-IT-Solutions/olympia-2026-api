@@ -128,6 +128,13 @@ public class DataInitializer implements CommandLineRunner {
         createMedal(r3, MedalType.BRONZE);
     }
 
+    private Sport createSport(String name) {
+        Sport s = new Sport();
+        s.setName(name);
+        s.setActive(true);
+        return sportRepository.save(s);
+    }
+
     private void createCountry(String code, String name) {
         Country country = new Country();
         country.setCode(code);
@@ -136,15 +143,8 @@ public class DataInitializer implements CommandLineRunner {
         countryRepository.save(country);
     }
 
-    private Sport createSport(String name) {
-        Sport s = new Sport();
-        s.setName(name);
-        s.setActive(true);
-        return sportRepository.save(s);
-    }
-
     private Athlete createAthlete(String name, String countryCode, Sport sport) {
-        Country country = countryRepository.findById(countryCode).orElseThrow();
+        Country country = countryRepository.findByCode(countryCode).orElseThrow();
 
         Athlete a = new Athlete();
         a.setName(name);

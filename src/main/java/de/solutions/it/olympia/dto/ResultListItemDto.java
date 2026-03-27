@@ -14,6 +14,7 @@ public class ResultListItemDto {
     Long athleteId;
     String athleteName;
 
+    Long countryId;
     String countryCode;
     String countryName;
 
