@@ -20,8 +20,8 @@ public class MedalController {
         return medalService.getCountryMedalTable();
     }
 
-    @GetMapping("/by-country/{country}")
-    public List<AthleteMedalView> getMedalsByCountry(@PathVariable String country) {
-        return medalService.getMedalsByCountry(country);
+    @GetMapping("/by-country/{countryId}")
+    public List<AthleteMedalView> getMedalsByCountry(@PathVariable Long countryId) {
+        return medalService.getMedalsByCountry(countryId);
     }
 }
